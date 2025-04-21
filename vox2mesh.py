@@ -2,21 +2,23 @@ import numpy as np
 from skimage import measure
 import meshio
 
-# Load flat voxel array
+# Step 1: Load flat voxel array (1D with 2700 elements)
 voxels = np.load('voxel_output.npy')
-print("Original shape:", voxels.shape)
+print("Original shape:", voxels.shape)  # should be (2700,)
 
-# Reshape to 2D and then stack to make it 3D
-voxels = voxels.reshape((90, 30))  # reshape to 2D
-voxels = np.stack([voxels, voxels], axis=10)  # make it 3D: (90, 30, 2)
-print("After stacking:", voxels.shape)
+# Step 2: Reshape to 2D (90 x 30), then stack to make 3D volume (depth = 10)
+voxels = voxels.reshape((90, 30))
+voxels = np.stack([voxels] * 10, axis=2)  # final shape: (90, 30, 10)
+print("Reshaped to:", voxels.shape)
 
-# Threshold
+# Step 3: Convert to binary using threshold
 voxels = voxels > 0.5
 
-# Generate mesh
+# Step 4: Generate mesh using marching cubes
 verts, faces, normals, values = measure.marching_cubes(voxels, level=0)
 
-# Save as STL
+# Step 5: Write mesh to STL file
 mesh = meshio.Mesh(points=verts, cells=[("triangle", faces)])
 mesh.write("output.stl")
+
+print("✅ STL file 'output.stl' generated successfully.")
